@@ -1,0 +1,12 @@
+Instruções básicas:
+- PUT (Colocar dado)
+- PRINT (Printa um dado)
+
+Argumentos de Instruções:
+- i(endereço) Endereço de 0 a 1024 - Usado com PUT/GET/PRINT
+
+Valores de argumentos:
+Ex:
+PUT i1 1 (Coloca o valor inteiro 1 no endereço 1)
+PRINT i57 %s/%i (Vai printar o valor que está no endereço 157)
+Caso use %s será formatado uma String e caso use %i vai ser formatado em número.
