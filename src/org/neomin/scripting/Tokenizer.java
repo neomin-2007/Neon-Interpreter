@@ -18,6 +18,8 @@ public class Tokenizer {
     public Tokenizer() {
         commands.put("label", this::label);
         commands.put("jmp", this::jmp);
+        commands.put("jmpif", this::jmpIf);
+        commands.put("jmpifnot", this::jmpIfNot);
 
         commands.put("put", this::put);
         commands.put("copy", this::copy);
@@ -95,6 +97,48 @@ public class Tokenizer {
         programCounter = target - 1;
     }
 
+    public void jmpIf(String[] args) {
+        int cAddress = TokenUtils.getRegisterIndex(args[1]);
+
+        final String label = args[2];
+        Integer target = labels.get(label);
+
+        if (target == null) {
+            throw new IllegalArgumentException("Unknown label: " + label);
+        }
+
+        final Object cObject = registers[cAddress];
+
+        if (!(cObject instanceof Boolean)) {
+            throw new IllegalArgumentException("Condition need be boolean");
+        }
+
+        if ((Boolean) cObject) {
+            programCounter = target - 1;
+        }
+    }
+
+    public void jmpIfNot(String[] args) {
+        int cAddress = TokenUtils.getRegisterIndex(args[1]);
+
+        final String label = args[2];
+        Integer target = labels.get(label);
+
+        if (target == null) {
+            throw new IllegalArgumentException("Unknown label: " + label);
+        }
+
+        final Object cObject = registers[cAddress];
+
+        if (!(cObject instanceof Boolean)) {
+            throw new IllegalArgumentException("Condition need be boolean");
+        }
+
+        if (!(Boolean) cObject) {
+            programCounter = target - 1;
+        }
+    }
+
     public void put(String[] args) {
         int address = TokenUtils.getRegisterIndex(args[1]);
 
@@ -165,10 +209,12 @@ public class Tokenizer {
 
         if (aObject instanceof Integer && bObject instanceof Integer) {
             registers[rAddress] = ((Integer) aObject) > ((Integer) bObject);
+            return;
         }
 
         if (aObject instanceof Float && bObject instanceof Float) {
             registers[rAddress] = ((Float) aObject) > ((Float) bObject);
+            return;
         }
 
         throw new IllegalArgumentException("Type mismatch for GT operation");
@@ -184,10 +230,12 @@ public class Tokenizer {
 
         if (aObject instanceof Integer && bObject instanceof Integer) {
             registers[rAddress] = ((Integer) aObject) < ((Integer) bObject);
+            return;
         }
 
         if (aObject instanceof Float && bObject instanceof Float) {
             registers[rAddress] = ((Float) aObject) < ((Float) bObject);
+            return;
         }
 
         throw new IllegalArgumentException("Type mismatch for LT operation");
@@ -203,10 +251,12 @@ public class Tokenizer {
 
         if (aObject instanceof Integer && bObject instanceof Integer) {
             registers[rAddress] = ((Integer) aObject) >= ((Integer) bObject);
+            return;
         }
 
         if (aObject instanceof Float && bObject instanceof Float) {
             registers[rAddress] = ((Float) aObject) >= ((Float) bObject);
+            return;
         }
 
         throw new IllegalArgumentException("Type mismatch for LTEQ operation");
@@ -222,10 +272,12 @@ public class Tokenizer {
 
         if (aObject instanceof Integer && bObject instanceof Integer) {
             registers[rAddress] = ((Integer) aObject) <= ((Integer) bObject);
+            return;
         }
 
         if (aObject instanceof Float && bObject instanceof Float) {
             registers[rAddress] = ((Float) aObject) <= ((Float) bObject);
+            return;
         }
 
         throw new IllegalArgumentException("Type mismatch for LTEQ operation");
