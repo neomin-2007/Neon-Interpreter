@@ -37,12 +37,33 @@ public class TokenUtils {
         }
 
         for (int i = 0; i < value.length(); i++) {
-            if (!Character.isDigit(value.charAt(i))) {
+
+            char c = value.charAt(i);
+
+            if (c == '-' || c == '+') {
+                if (i != 0) return false;
+                continue;
+            }
+
+            if (!Character.isDigit(c)) {
                 return false;
             }
         }
 
         return true;
+    }
+
+    public static float toFloat(Object o) {
+
+        if (o instanceof Float) {
+            return (Float) o;
+        }
+
+        if (o instanceof Integer) {
+            return ((Integer) o).floatValue();
+        }
+
+        throw new IllegalArgumentException("Not a number");
     }
 
     public static boolean isFloatNumber(String value) {

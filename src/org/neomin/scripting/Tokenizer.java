@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 
 public class Tokenizer {
@@ -21,14 +22,16 @@ public class Tokenizer {
         commands.put("jmpif", this::jmpIf);
         commands.put("jmpifnot", this::jmpIfNot);
 
+        commands.put("rand", this::rand);
+
         commands.put("put", this::put);
         commands.put("copy", this::copy);
         commands.put("print", this::print);
         commands.put("clean", this::clean);
 
         commands.put("eq", this::eq);
-        commands.put("gteq", this::gt);
-        commands.put("lteq", this::lt);
+        commands.put("gteq", this::gtEq);
+        commands.put("lteq", this::ltEq);
         commands.put("gt", this::gt);
         commands.put("lt", this::lt);
 
@@ -38,6 +41,7 @@ public class Tokenizer {
         commands.put("sub", this::sub);
         commands.put("mut", this::mut);
         commands.put("div", this::div);
+        commands.put("mod", this::mod);
     }
 
     public void start() {
@@ -139,6 +143,51 @@ public class Tokenizer {
         }
     }
 
+    public void rand(String[] args) {
+        Object a = resolveValue(args[1]);
+        Object b = resolveValue(args[2]);
+
+        int rAddress = TokenUtils.getRegisterIndex(args[3]);
+
+        if (!(a instanceof Number) || !(b instanceof Number)) {
+            registers[rAddress] = 0;
+            return;
+        }
+
+        float min = ((Number) a).floatValue();
+        float max = ((Number) b).floatValue();
+
+        if (min > max) {
+            float tmp = min;
+            min = max;
+            max = tmp;
+        }
+
+        if (a instanceof Float || b instanceof Float) {
+            registers[rAddress] = (float) ThreadLocalRandom.current().nextDouble(min, max);
+            return;
+        }
+
+        registers[rAddress] = ThreadLocalRandom.current().nextInt((int) min, (int) max);
+    }
+
+    private Object resolveValue(String token) {
+
+        if (token.startsWith("i")) {
+            return registers[TokenUtils.getRegisterIndex(token)];
+        }
+
+        if (TokenUtils.isNumeric(token)) {
+            return Integer.parseInt(token);
+        }
+
+        if (TokenUtils.isFloatNumber(token)) {
+            return Float.parseFloat(token);
+        }
+
+        return token;
+    }
+
     public void put(String[] args) {
         int address = TokenUtils.getRegisterIndex(args[1]);
 
@@ -212,8 +261,10 @@ public class Tokenizer {
             return;
         }
 
-        if (aObject instanceof Float && bObject instanceof Float) {
-            registers[rAddress] = ((Float) aObject) > ((Float) bObject);
+        if ((aObject instanceof Integer || aObject instanceof Float)
+                && (bObject instanceof Integer || bObject instanceof Float)) {
+
+            registers[rAddress] = TokenUtils.toFloat(aObject) > TokenUtils.toFloat(bObject);
             return;
         }
 
@@ -233,8 +284,10 @@ public class Tokenizer {
             return;
         }
 
-        if (aObject instanceof Float && bObject instanceof Float) {
-            registers[rAddress] = ((Float) aObject) < ((Float) bObject);
+        if ((aObject instanceof Integer || aObject instanceof Float)
+                && (bObject instanceof Integer || bObject instanceof Float)) {
+
+            registers[rAddress] = TokenUtils.toFloat(aObject) < TokenUtils.toFloat(bObject);
             return;
         }
 
@@ -254,8 +307,10 @@ public class Tokenizer {
             return;
         }
 
-        if (aObject instanceof Float && bObject instanceof Float) {
-            registers[rAddress] = ((Float) aObject) >= ((Float) bObject);
+        if ((aObject instanceof Integer || aObject instanceof Float)
+                && (bObject instanceof Integer || bObject instanceof Float)) {
+
+            registers[rAddress] = TokenUtils.toFloat(aObject) >= TokenUtils.toFloat(bObject);
             return;
         }
 
@@ -275,8 +330,10 @@ public class Tokenizer {
             return;
         }
 
-        if (aObject instanceof Float && bObject instanceof Float) {
-            registers[rAddress] = ((Float) aObject) <= ((Float) bObject);
+        if ((aObject instanceof Integer || aObject instanceof Float)
+                && (bObject instanceof Integer || bObject instanceof Float)) {
+
+            registers[rAddress] = TokenUtils.toFloat(aObject) <= TokenUtils.toFloat(bObject);
             return;
         }
 
@@ -337,29 +394,31 @@ public class Tokenizer {
 
     public void sum(String[] args) {
 
-        int firstAddress = TokenUtils.getRegisterIndex(args[1]);
-        int secondAddress = TokenUtils.getRegisterIndex(args[2]);
-        int replaceAddress = TokenUtils.getRegisterIndex(args[3]);
+        int aAddress = TokenUtils.getRegisterIndex(args[1]);
+        int bAddress = TokenUtils.getRegisterIndex(args[2]);
+        int rAddress = TokenUtils.getRegisterIndex(args[3]);
 
-        Object firstObject = registers[firstAddress];
-        Object secondObject = registers[secondAddress];
+        Object aObject = registers[aAddress];
+        Object bObject = registers[bAddress];
 
-        if (firstObject == null || secondObject == null) {
+        if (aObject == null || bObject == null) {
             return;
         }
 
-        if (firstObject instanceof String && secondObject instanceof String) {
-            registers[replaceAddress] = ((String) firstObject) + ((String) secondObject);
+        if (aObject instanceof String && bObject instanceof String) {
+            registers[rAddress] = ((String) aObject) + ((String) bObject);
             return;
         }
 
-        if (firstObject instanceof Integer && secondObject instanceof Integer) {
-            registers[replaceAddress] = ((Integer) firstObject) + ((Integer) secondObject);
+        if (aObject instanceof Integer && bObject instanceof Integer) {
+            registers[rAddress] = ((Integer) aObject) + ((Integer) bObject);
             return;
         }
 
-        if (firstObject instanceof Float && secondObject instanceof Float) {
-            registers[replaceAddress] = ((Float) firstObject) + ((Float) secondObject);
+        if ((aObject instanceof Integer || aObject instanceof Float)
+                && (bObject instanceof Integer || bObject instanceof Float)) {
+
+            registers[rAddress] = TokenUtils.toFloat(aObject) + TokenUtils.toFloat(bObject);
             return;
         }
 
@@ -384,8 +443,10 @@ public class Tokenizer {
             return;
         }
 
-        if (aObject instanceof Float && bObject instanceof Float) {
-            registers[rAddress] = ((Float) aObject) - ((Float) bObject);
+        if ((aObject instanceof Integer || aObject instanceof Float)
+                && (bObject instanceof Integer || bObject instanceof Float)) {
+
+            registers[rAddress] = TokenUtils.toFloat(aObject) - TokenUtils.toFloat(bObject);
             return;
         }
 
@@ -410,8 +471,10 @@ public class Tokenizer {
             return;
         }
 
-        if (aObject instanceof Float && bObject instanceof Float) {
-            registers[rAddress] = ((Float) aObject) * ((Float) bObject);
+        if ((aObject instanceof Integer || aObject instanceof Float)
+                && (bObject instanceof Integer || bObject instanceof Float)) {
+
+            registers[rAddress] = TokenUtils.toFloat(aObject) * TokenUtils.toFloat(bObject);
             return;
         }
 
@@ -436,11 +499,41 @@ public class Tokenizer {
             return;
         }
 
-        if (aObject instanceof Float && bObject instanceof Float) {
-            registers[rAddress] = ((Float) aObject) / ((Float) bObject);
+        if ((aObject instanceof Integer || aObject instanceof Float)
+                && (bObject instanceof Integer || bObject instanceof Float)) {
+
+            registers[rAddress] = TokenUtils.toFloat(aObject) / TokenUtils.toFloat(bObject);
             return;
         }
 
         throw new IllegalArgumentException("Type mismatch for DIVISION operation");
+    }
+
+    public void mod(String[] args) {
+
+        int aAddress = TokenUtils.getRegisterIndex(args[1]);
+        int bAddress = TokenUtils.getRegisterIndex(args[2]);
+        int rAddress = TokenUtils.getRegisterIndex(args[3]);
+
+        Object aObject = registers[aAddress];
+        Object bObject = registers[bAddress];
+
+        if (aObject == null || bObject == null) {
+            return;
+        }
+
+        if (aObject instanceof Integer && bObject instanceof Integer) {
+            registers[rAddress] = ((Integer) aObject) % ((Integer) bObject);
+            return;
+        }
+
+        if ((aObject instanceof Integer || aObject instanceof Float)
+                && (bObject instanceof Integer || bObject instanceof Float)) {
+
+            registers[rAddress] = TokenUtils.toFloat(aObject) % TokenUtils.toFloat(bObject);
+            return;
+        }
+
+        throw new IllegalArgumentException("Type mismatch for MOD operation");
     }
 }

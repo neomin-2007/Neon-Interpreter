@@ -1,30 +1,9 @@
-PUT i0 "------------"
-PUT i1 "Você venceu!"
-PUT i2 "Você perdeu!"
+PUT i0 0
+PUT i1 5
 
-PUT i3 10
-PUT i4 5
-
-PRINT i0
-PRINT i3
-PRINT i4
-
-GT i3 i4 i5
-PRINT i5
-
-PRINT i0
-JMPIF i5 SENDWIN
-JMPIFNOT i5 SENDDEFEAT
-
-LABEL SENDWIN
-PRINT i0
-PRINT i1
-PRINT i0
-JMP END
-
-LABEL SENDDEFEAT
-PRINT i0
-PRINT i2
+LABEL contar
+INC i0
 PRINT i0
 
-LABEL END
+LT i0 i1 i2
+JMPIF i2 contar
