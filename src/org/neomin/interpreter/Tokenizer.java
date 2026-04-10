@@ -1,4 +1,4 @@
-package org.neomin.scripting;
+package org.neomin.interpreter;
 
 import java.util.ArrayList;
 import java.util.HashMap;

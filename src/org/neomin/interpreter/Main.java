@@ -1,4 +1,4 @@
-package org.neomin.scripting;
+package org.neomin.interpreter;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
